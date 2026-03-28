@@ -1,6 +1,10 @@
 document.addEventListener( 'DOMContentLoaded', function () {
 	const cloudCatchTabs = ( tabsWrapper ) => {
-		const tabLabels = tabsWrapper.querySelectorAll( '[role="tab"]' );
+		const tabLabels = Array.from(
+			tabsWrapper.querySelectorAll( '[role="tab"]' )
+		).filter(
+			( el ) => el.closest( '.wp-block-cloudcatch-tabs' ) === tabsWrapper
+		);
 
 		for ( let x = 0; x < tabLabels.length; x++ ) {
 			tabLabels[ x ].addEventListener( 'focus', focusEventHandler );
@@ -62,8 +66,14 @@ document.addEventListener( 'DOMContentLoaded', function () {
 		};
 
 		const setActiveTab = ( id ) => {
-			tabsWrapper
-				.querySelectorAll( 'div[tabid]:not([role="tab"])' )
+			Array.from(
+				tabsWrapper.querySelectorAll( 'div[tabid]:not([role="tab"])' )
+			)
+				.filter(
+					( el ) =>
+						el.closest( '.wp-block-cloudcatch-tabs' ) ===
+						tabsWrapper
+				)
 				.forEach( ( tab ) => {
 					tab.style.display = 'none';
 					tab.classList.remove( 'active' );
@@ -76,21 +86,27 @@ document.addEventListener( 'DOMContentLoaded', function () {
 
 			activeIndex = parseInt( id );
 
-			const currentTabLabel = tabsWrapper.querySelector(
-				'[role="tab"][tabid="' + activeIndex + '"]'
+			const currentTabLabel = tabLabels.find(
+				( label ) => parseInt( label.getAttribute( 'tabid' ) ) === activeIndex
 			);
 
-			currentTabLabel.classList.add( 'active' );
-			currentTabLabel.setAttribute( 'aria-selected', 'true' );
+			if ( currentTabLabel ) {
+				currentTabLabel.classList.add( 'active' );
+				currentTabLabel.setAttribute( 'aria-selected', 'true' );
+			}
 
-			tabsWrapper.querySelector(
-				'div[tabid="' + activeIndex + '"]:not([role="tab"])'
-			).style.display = 'block';
-			tabsWrapper
-				.querySelector(
+			const currentTabPanel = Array.from(
+				tabsWrapper.querySelectorAll(
 					'div[tabid="' + activeIndex + '"]:not([role="tab"])'
 				)
-				.classList.add( 'active' );
+			).find(
+				( el ) => el.closest( '.wp-block-cloudcatch-tabs' ) === tabsWrapper
+			);
+
+			if ( currentTabPanel ) {
+				currentTabPanel.style.display = 'block';
+				currentTabPanel.classList.add( 'active' );
+			}
 
 			const event = new CustomEvent( 'tabChanged', { // eslint-disable-line
 				detail: currentTabLabel,
